@@ -26,7 +26,6 @@ class SystemMonitor(QWidget):
             }
             QLabel:hover {
                 background-color: #2a2a2a;
-                transition: background-color 0.2s;
             }
         """)
         
