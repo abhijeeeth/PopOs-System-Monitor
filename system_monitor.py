@@ -35,6 +35,7 @@ class SystemMonitor(QWidget):
         self.ram_label = QLabel()
         self.disk_label = QLabel()
         self.gpu_label = QLabel()
+        self.gpu_memory_label = QLabel()
 
         # Main layout with spacing
         layout = QVBoxLayout()
@@ -46,7 +47,8 @@ class SystemMonitor(QWidget):
             ("CPU", self.cpu_label),
             ("RAM", self.ram_label),
             ("DISK", self.disk_label),
-            ("GPU", self.gpu_label)
+            ("GPU", self.gpu_label),
+            ("GPU Memory", self.gpu_memory_label)
         ]:
             layout.addWidget(self.create_title_label(title))
             layout.addWidget(label)
@@ -94,24 +96,35 @@ class SystemMonitor(QWidget):
         # GPU Usage & Temp
         gpu_temp = "Not detected"
         gpu_load = "Not detected"
+        gpu_memory = "Not detected"
         try:
+            # Temperature
             gpu_temp = subprocess.check_output(
                 ["nvidia-smi", "--query-gpu=temperature.gpu", "--format=csv,noheader,nounits"]
             )
             gpu_temp = gpu_temp.decode().strip() + "°C"
 
+            # GPU Load
             gpu_load = subprocess.check_output(
                 ["nvidia-smi", "--query-gpu=utilization.gpu", "--format=csv,noheader,nounits"]
             )
             gpu_load = gpu_load.decode().strip() + "%"
+
+            # GPU Memory
+            gpu_memory_info = subprocess.check_output(
+                ["nvidia-smi", "--query-gpu=memory.used,memory.total", "--format=csv,noheader,nounits"]
+            )
+            memory_used, memory_total = map(int, gpu_memory_info.decode().strip().split(', '))
+            gpu_memory = f"{memory_used}/{memory_total} MB ({(memory_used/memory_total*100):.1f}%)"
         except (FileNotFoundError, subprocess.CalledProcessError):
             pass
 
-        # Update the label text with a more minimal format
+        # Update the label text
         self.cpu_label.setText(f"CPU Usage: {cpu_usage:.1f}%")
         self.ram_label.setText(f"Memory: {ram_usage:.1f}% ({ram_used:.1f}/{ram_total:.1f} GB)")
         self.disk_label.setText(f"Storage: {disk_usage:.1f}% ({disk_used:.1f}/{disk_total:.1f} GB)")
         self.gpu_label.setText(f"GPU Temperature: {gpu_temp} • Load: {gpu_load}")
+        self.gpu_memory_label.setText(f"Memory Usage: {gpu_memory}")
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
