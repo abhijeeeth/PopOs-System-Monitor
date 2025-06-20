@@ -9,18 +9,24 @@ class SystemMonitor(QWidget):
     def __init__(self):
         super().__init__()
         
-        # Set window properties
-        self.setWindowTitle("SYS_MONITOR::POP_OS")
+        self.setWindowTitle("System Monitor")
         self.setStyleSheet("""
             QWidget {
-                background-color: #000000;
-                color: #00ff00;
-                font-family: 'Courier New';
+                background-color: #1e1e1e;
+                color: #e0e0e0;
+                font-family: 'Segoe UI', 'SF Pro Display', sans-serif;
             }
             QLabel {
-                border: 1px solid #00ff00;
-                padding: 5px;
-                background-color: #001100;
+                border: none;
+                border-radius: 12px;
+                padding: 16px;
+                background-color: #252525;
+                margin: 4px;
+                font-size: 13px;
+            }
+            QLabel:hover {
+                background-color: #2a2a2a;
+                transition: background-color 0.2s;
             }
         """)
         
@@ -30,18 +36,21 @@ class SystemMonitor(QWidget):
         self.disk_label = QLabel()
         self.gpu_label = QLabel()
 
+        # Main layout with spacing
         layout = QVBoxLayout()
-        layout.addWidget(self.create_title_label("CPU"))
-        layout.addWidget(self.cpu_label)
+        layout.setSpacing(12)
+        layout.setContentsMargins(20, 20, 20, 20)
 
-        layout.addWidget(self.create_title_label("RAM"))
-        layout.addWidget(self.ram_label)
-
-        layout.addWidget(self.create_title_label("Disk"))
-        layout.addWidget(self.disk_label)
-
-        layout.addWidget(self.create_title_label("GPU"))
-        layout.addWidget(self.gpu_label)
+        # Add widgets with consistent spacing
+        for title, label in [
+            ("CPU", self.cpu_label),
+            ("RAM", self.ram_label),
+            ("DISK", self.disk_label),
+            ("GPU", self.gpu_label)
+        ]:
+            layout.addWidget(self.create_title_label(title))
+            layout.addWidget(label)
+            layout.addSpacing(8)
 
         self.setLayout(layout)
 
@@ -52,15 +61,17 @@ class SystemMonitor(QWidget):
         self.update_stats()
 
     def create_title_label(self, title):
-        label = QLabel(f"[ {title}_METRICS ]")
+        label = QLabel(title)
         label.setStyleSheet("""
-            font-size: 16px;
-            font-weight: bold;
-            margin-top: 10px;
-            border: 2px solid #00ff00;
-            border-radius: 5px;
-            padding: 5px;
-            background-color: #002200;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 8px 16px;
+            background-color: transparent;
+            color: #808080;
+            border: none;
+            margin-top: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         """)
         return label
 
@@ -96,16 +107,16 @@ class SystemMonitor(QWidget):
         except (FileNotFoundError, subprocess.CalledProcessError):
             pass
 
-        # Set Labels with more technical formatting
-        self.cpu_label.setText(f"[UTILIZATION]: {cpu_usage:.1f}% | STATUS: MONITORING")
-        self.ram_label.setText(f"[MEMORY_USAGE]: {ram_usage:.1f}% | ALLOCATED: {ram_used:.1f}/{ram_total:.1f}GB")
-        self.disk_label.setText(f"[STORAGE_STATUS]: {disk_usage:.1f}% | CAPACITY: {disk_used:.1f}/{disk_total:.1f}GB")
-        self.gpu_label.setText(f"[GPU_METRICS] | TEMP: {gpu_temp} | LOAD: {gpu_load}")
+        # Update the label text with a more minimal format
+        self.cpu_label.setText(f"CPU Usage: {cpu_usage:.1f}%")
+        self.ram_label.setText(f"Memory: {ram_usage:.1f}% ({ram_used:.1f}/{ram_total:.1f} GB)")
+        self.disk_label.setText(f"Storage: {disk_usage:.1f}% ({disk_used:.1f}/{disk_total:.1f} GB)")
+        self.gpu_label.setText(f"GPU Temperature: {gpu_temp} • Load: {gpu_load}")
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = SystemMonitor()
-    window.resize(400, 400)  # Made window slightly larger
+    window.resize(380, 500)
     window.show()
     sys.exit(app.exec_())
 
