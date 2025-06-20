@@ -17,7 +17,7 @@ A simple **Python + PyQt5** app that displays **live CPU, RAM, Disk, and GPU (NV
 ---
 
 ## ⚡️ Requirements
-- **Pop!_OS / Ubuntu / Debian-based Linux**
+- **Pop!_OS / Ubuntu / Debian-based Linux** or **Windows**
 - **Python 3.10 or later**
 - **NVIDIA GPU** (optional)
 
@@ -27,20 +27,35 @@ A simple **Python + PyQt5** app that displays **live CPU, RAM, Disk, and GPU (NV
 
 **Additional GPU Requirement**:
 - `nvidia-smi` available (for GPU stats)
+  - Linux: Included with NVIDIA drivers
+  - Windows: Included with NVIDIA drivers
 
 ---
 
 ## 🚀 Installation & Usage
 
 ### Install Dependencies
+
+**Linux**:
 ```bash
 sudo apt install python3 python3-pip
 pip3 install psutil pyqt5
 ```
 
+**Windows**:
+```bash
+pip install psutil pyqt5
+```
+
 ### Running the App
+**Linux**:
 ```bash
 python3 system_monitor.py
+```
+
+**Windows**:
+```bash
+python system_monitor.py
 ```
 
 ## 📊 Output
