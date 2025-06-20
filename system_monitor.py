@@ -3,7 +3,47 @@ import psutil
 import subprocess
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QFrame
 from PyQt5.QtCore import QTimer
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QFont, QPainter, QPen, QColor
+from collections import deque
+
+class GraphWidget(QWidget):
+    def __init__(self, max_points=60):
+        super().__init__()
+        self.data = deque([0] * max_points, maxlen=max_points)
+        self.setMinimumHeight(50)
+        
+    def add_point(self, value):
+        self.data.append(value)
+        self.update()
+        
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        
+        # Background
+        painter.fillRect(self.rect(), QColor('#252525'))
+        
+        if len(self.data) > 1:
+            pen = QPen(QColor('#00ff00'))
+            pen.setWidth(1)
+            painter.setPen(pen)
+            
+            w = self.width() / (len(self.data) - 1)
+            h = self.height()
+            
+            # Create path
+            points = []
+            for i, value in enumerate(self.data):
+                x = i * w
+                y = h - (value * h / 100)
+                points.append((x, y))
+            
+            # Draw lines
+            for i in range(len(points) - 1):
+                painter.drawLine(
+                    int(points[i][0]), int(points[i][1]),
+                    int(points[i+1][0]), int(points[i+1][1])
+                )
 
 class SystemMonitor(QWidget):
     def __init__(self):
@@ -36,22 +76,34 @@ class SystemMonitor(QWidget):
         self.gpu_label = QLabel()
         self.gpu_memory_label = QLabel()
 
+        # Add graph widgets
+        self.cpu_graph = GraphWidget()
+        self.ram_graph = GraphWidget()
+        self.gpu_graph = GraphWidget()
+
         # Main layout with spacing
         layout = QVBoxLayout()
         layout.setSpacing(12)
         layout.setContentsMargins(20, 20, 20, 20)
 
-        # Add widgets with consistent spacing
-        for title, label in [
-            ("CPU", self.cpu_label),
-            ("RAM", self.ram_label),
-            ("DISK", self.disk_label),
-            ("GPU", self.gpu_label),
-            ("GPU Memory", self.gpu_memory_label)
-        ]:
-            layout.addWidget(self.create_title_label(title))
-            layout.addWidget(label)
-            layout.addSpacing(8)
+        # Add widgets with graphs
+        layout.addWidget(self.create_title_label("CPU"))
+        layout.addWidget(self.cpu_label)
+        layout.addWidget(self.cpu_graph)
+        
+        layout.addWidget(self.create_title_label("RAM"))
+        layout.addWidget(self.ram_label)
+        layout.addWidget(self.ram_graph)
+        
+        layout.addWidget(self.create_title_label("DISK"))
+        layout.addWidget(self.disk_label)
+        
+        layout.addWidget(self.create_title_label("GPU"))
+        layout.addWidget(self.gpu_label)
+        layout.addWidget(self.gpu_graph)
+        
+        layout.addWidget(self.create_title_label("GPU Memory"))
+        layout.addWidget(self.gpu_memory_label)
 
         self.setLayout(layout)
 
@@ -125,10 +177,19 @@ class SystemMonitor(QWidget):
         self.gpu_label.setText(f"GPU Temperature: {gpu_temp} • Load: {gpu_load}")
         self.gpu_memory_label.setText(f"Memory Usage: {gpu_memory}")
 
+        # Update graphs
+        self.cpu_graph.add_point(cpu_usage)
+        self.ram_graph.add_point(ram_usage)
+        try:
+            gpu_load_value = float(gpu_load.strip('%'))
+            self.gpu_graph.add_point(gpu_load_value)
+        except (ValueError, AttributeError):
+            self.gpu_graph.add_point(0)
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = SystemMonitor()
-    window.resize(380, 500)
+    window.resize(380, 700)  # Made window taller to accommodate graphs
     window.show()
     sys.exit(app.exec_())
 
